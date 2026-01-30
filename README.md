@@ -159,11 +159,13 @@ git clone https://github.com/shakivhussain/AnimeVault.git
 
 ## 🤝 Contributing
 
-Contributions are welcome. Please ensure that any Pull Request adheres to the project's code style and includes relevant tests. See [CONTRIBUTING.md](https://www.google.com/search?q=CONTRIBUTING.md) for details.
+Contributions are welcome. Please ensure that any Pull Request adheres to the project's code style and includes relevant tests.  
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
 
 ---
 
