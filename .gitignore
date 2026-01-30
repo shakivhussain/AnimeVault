@@ -13,3 +13,26 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android build
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+/bin/
+/gen/
+/out/
+/build/
+.gradle/
+build/
+app/build/
+
+.idea/
+captures/
+.cxx/
+
+.kotlin/
+
+# Secrets
+appconfig.properties

@@ -286,9 +286,11 @@ fun AnimeItem(anime: AnimeEntity, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier
-                    .weight(1f)
-                    .height(4.dp))
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(4.dp)
+                )
 
                 ScoreBadge(
                     score = anime.score,
@@ -448,10 +450,12 @@ fun ScrollToTopButton(
     ) {
         FloatingActionButton(
             onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 scope.launch {
-
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    scope.launch { listState.animateScrollToItem(0) }
+                    if (listState.firstVisibleItemIndex > 20) {
+                        listState.scrollToItem(10)
+                    }
+                    listState.animateScrollToItem(0)
 
                 }
             },
