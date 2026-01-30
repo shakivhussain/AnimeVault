@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ fun YouTubePlayerComponent(
     videoUrl: String,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
 ) {
-    val context = LocalContext.current
     val videoId = AppUtils.extractYoutubeVideoId(videoUrl) ?: return
 
     var isPlayerReady by remember { mutableStateOf(false) }
@@ -48,7 +48,7 @@ fun YouTubePlayerComponent(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.surface)
             .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
     ) {
 

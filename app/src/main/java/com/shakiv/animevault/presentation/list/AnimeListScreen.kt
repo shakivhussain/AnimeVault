@@ -1,6 +1,7 @@
 package com.shakiv.animevault.presentation.list
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,6 +10,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,12 +33,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,9 +55,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,6 +68,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -72,6 +85,7 @@ import com.shakiv.animevault.presentation.common.NetworkImageWithState
 import com.shakiv.animevault.utils.AppConfig
 import com.shakiv.animevault.utils.AppUtils.APP_NAME
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,7 +156,7 @@ fun AnimeListContent(
     onAnimeClick: (Int) -> Unit
 ) {
     val loadState = animeItems.loadState
-
+    val listState = rememberLazyListState()
     val isInitialLoading = loadState.refresh is LoadState.Loading
     val isInitialError = loadState.refresh is LoadState.Error && animeItems.itemCount == 0
     val isEmpty = loadState.refresh is LoadState.NotLoading && animeItems.itemCount == 0
@@ -157,14 +171,13 @@ fun AnimeListContent(
             label = "ContentTransition"
         ) { loading ->
             if (loading) {
-
-
                 Column(Modifier.fillMaxSize()) {
                     repeat(8) { ShimmerItem() }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    state = listState,
                     contentPadding = PaddingValues(bottom = 24.dp),
                     flingBehavior = ScrollableDefaults.flingBehavior()
                 ) {
@@ -188,12 +201,27 @@ fun AnimeListContent(
 
                     if (loadState.append is LoadState.Error) {
                         item {
-                            ErrorUI(modifier = Modifier.fillMaxSize().align(Alignment.Center)) { animeItems.retry() }
+                            ErrorUI(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .align(Alignment.Center)
+                            ) { animeItems.retry() }
                         }
                     }
                 }
             }
         }
+
+
+        ScrollToTopButton(
+            listState = listState,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        )
+
+
+
 
         if (isInitialError) {
             ErrorUI(
@@ -258,9 +286,14 @@ fun AnimeItem(anime: AnimeEntity, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(modifier = Modifier.weight(1f).height(4.dp))
+                Spacer(modifier = Modifier
+                    .weight(1f)
+                    .height(4.dp))
 
-                ScoreBadge(score = anime.score, modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp))
+                ScoreBadge(
+                    score = anime.score,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
+                )
             }
         }
     }
@@ -387,6 +420,49 @@ fun ShimmerItem(
                     .size(60.dp, 20.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(brush)
+            )
+        }
+    }
+}
+
+
+@Composable
+fun ScrollToTopButton(
+    listState: LazyListState,
+    modifier: Modifier = Modifier,
+    threshold: Int = 5
+) {
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+    val isVisible by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > threshold
+        }
+    }
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut() + scaleOut(),
+        modifier = modifier
+    ) {
+        FloatingActionButton(
+            onClick = {
+                scope.launch {
+
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    scope.launch { listState.animateScrollToItem(0) }
+
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = CircleShape,
+            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.KeyboardArrowUp,
+                contentDescription = stringResource(R.string.cd_scroll_to_top)
             )
         }
     }

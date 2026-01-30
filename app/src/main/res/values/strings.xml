@@ -17,5 +17,5 @@
     <string name="trailer_not_available">No Trailer Available</string>
     <string name="cd_back_button">Back</string>
     <string name="error_image_load">Error in loading image</string>
-
+    <string name="cd_scroll_to_top">Scroll to top</string>
 </resources>
