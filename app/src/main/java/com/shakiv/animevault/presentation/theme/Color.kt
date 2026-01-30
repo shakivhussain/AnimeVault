@@ -1,4 +1,4 @@
-package com.shakiv.animevault.ui.theme
+package com.shakiv.animevault.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
